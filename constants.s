@@ -1,4 +1,5 @@
 .definelabel moves, 0x08250C04
+// .definelabel change_hp_static_type, 0
 
 .definelabel pkmn_status_data, 0x0203B140
 .definelabel battle_slot_mapping, 0x02023BCE
