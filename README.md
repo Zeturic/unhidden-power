@@ -1,6 +1,6 @@
 ## Unhidden Power
 
-This routine makes the game calculate and display the actual type of Hidden Power in battle and in status screens. If, for example, a Pokémon's Hidden Power type is Water, it will display as an Water-type move just like Surf or any other Water-type move.
+This routine makes the game calculate and display the actual type of Hidden Power in battle and in status screens. If, for example, a Pokémon's Hidden Power type is Water, it will display as a Water-type move, just like Surf or any other Water-type move.
 
 ![](in-battle.png)
 ![](status-screen.png)
