@@ -1,17 +1,36 @@
-.gba
-.arm
-.include "constants.s"
+// change these constants as needed
 
-.thumb
-.include "functions.s"
+rom equ "firered.gba"
+.definelabel free_space, 0x08800000
 
-.open "test.gba", 0x08000000
+.definelabel moves, 0x08250C04
+change_hp_static_type equ false
 
 // -----------------------------------------------------------------------------
+.definelabel write_type, 0x0803098E
+.definelabel display_type, 0x081368D6
+.definelabel pokemon_getattr, 0x0803FBE8
 
-.org allocation
+.definelabel pkmn_status_data, 0x0203B140
+.definelabel battle_slot_mapping, 0x02023BCE
+.definelabel party_player, 0x02024284
 
-.area allocation_size
+hp_effect_index equ 0x87
+
+true equ 1
+false equ 0
+
+// -----------------------------------------------------------------------------
+.gba
+.thumb
+
+.open rom, 0x08000000
+
+// -----------------------------------------------------------------------------
+.org free_space
+
+.area 180
+    .align 2
 
     write_type_hook:
 
@@ -49,7 +68,6 @@
         bx r1
 
 // -----------------------------------------------------------------------------
-
     display_type_hook:
 
     @@main:                               // r2, r5 := move_id, moves
@@ -80,7 +98,6 @@
         bx r2
 
 // -----------------------------------------------------------------------------
-
     // uint8_t hp_type_decode(pokemon_t*)
     hp_type_decode:
 
@@ -129,7 +146,6 @@
 .endarea
 
 // -----------------------------------------------------------------------------
-
 .org 0x08030984
     ldr r0, =write_type_hook |1
     bx r0
@@ -141,13 +157,10 @@
     .pool
 
 // -----------------------------------------------------------------------------
-
-.ifdef change_hp_static_type
+.if change_hp_static_type
     .org moves + 0xED * 12 +2
     .byte 0x9
 .endif
 
 // -----------------------------------------------------------------------------
-
 .close
-
