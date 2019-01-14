@@ -1,10 +1,9 @@
 // change these constants as needed
 
-rom equ "firered.gba"
+input_rom equ "rom.gba"
+output_rom equ "test.gba"
 .definelabel free_space, 0x08800000
-
-.definelabel moves, 0x08250C04
-change_hp_static_type equ false
+change_hp_static_type equ true
 
 // -----------------------------------------------------------------------------
 .definelabel write_type, 0x0803098E
@@ -15,6 +14,8 @@ change_hp_static_type equ false
 .definelabel battle_slot_mapping, 0x02023BCE
 .definelabel party_player, 0x02024284
 
+.definelabel moves_ptr, 0x0801ACDC
+
 hp_effect_index equ 0x87
 
 true equ 1
@@ -24,12 +25,12 @@ false equ 0
 .gba
 .thumb
 
-.open rom, 0x08000000
+.open input_rom, output_rom, 0x08000000
 
 // -----------------------------------------------------------------------------
 .org free_space
 
-.area 180
+.area 184
     .align 2
 
     write_type_hook:
@@ -41,7 +42,8 @@ false equ 0
         lsl r0, r1, #2
         lsl r1, r1, #3
         add r0, r1                        // r0 := sizeof(move_t) * move_id
-        ldr r1, =moves
+        ldr r1, =moves_ptr
+        ldr r1, [r1]
         add r1, r0                        // [r1] := data for current move
         ldrb r0, [r1, #2]                // r0 := recorded type
     
@@ -158,7 +160,7 @@ false equ 0
 
 // -----------------------------------------------------------------------------
 .if change_hp_static_type
-    .org moves + 0xED * 12 +2
+    .org readu32(input_rom, moves_ptr & 0x1FFFFFF) + 0xED * 12 +2
     .byte 0x9
 .endif
 
