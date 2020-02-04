@@ -1,21 +1,6 @@
 .include "config.s"
-
-// -----------------------------------------------------------------------------
-
-.definelabel write_type, 0x0803098E
-.definelabel display_type, 0x081368D6
-.definelabel pokemon_getattr, 0x0803FBE8
-
-.definelabel pkmn_status_data, 0x0203B140
-.definelabel battle_slot_mapping, 0x02023BCE
-.definelabel party_player, 0x02024284
-
-.definelabel moves_ptr, 0x0801ACDC
-
-hp_effect_index equ 0x87
-
-true equ 1
-false equ 0
+.include "labels.s"
+.include "constants.s"
 
 // -----------------------------------------------------------------------------
 
@@ -29,7 +14,7 @@ false equ 0
 .org free_space
 .align 2
 
-write_type_hook:
+MoveSelectionDisplayMoveType_hook:
 
 @@main:                                 // r1 := move_id
     push {r3-r7}
@@ -38,23 +23,23 @@ write_type_hook:
     lsl r0, r1, #2
     lsl r1, r1, #3
     add r0, r1                        // r0 := sizeof(move_t) * move_id
-    ldr r1, =moves_ptr
+    ldr r1, =gBattleMovesPtr
     ldr r1, [r1]
     add r1, r0                        // [r1] := data for current move
     ldrb r0, [r1, #2]                // r0 := recorded type
 
     ldrb r2, [r1, #0]                // r2 := move effect id
-    cmp r2, #hp_effect_index
+    cmp r2, #EFFECT_HIDDEN_POWER
     bne @@return
 
     ldrb r0, [r5]                    // r0 := slot
     lsl r0, #1                        // r0 := slot << 1
-    ldr r1, =battle_slot_mapping
+    ldr r1, =gBattlerPartyIndexes
     add r0, r1
     ldrb r0, [r0]                    // r0 := index in party
     mov r1, #100
-    mul r0, r1                        // r0 := offset from party_player
-    ldr r1, =party_player
+    mul r0, r1                        // r0 := offset from gPlayerParty
+    ldr r1, =gPlayerParty
     add r0, r1                        // [r0] := pokemon
 
     bl hp_type_decode
@@ -62,12 +47,12 @@ write_type_hook:
 @@return:
     mov lr, r7
     pop {r3-r7}
-    ldr r1, =write_type |1
+    ldr r1, =MoveSelectionDisplayMoveType_hook_return |1
     bx r1
 
 // -----------------------------------------------------------------------------
 
-display_type_hook:
+sub_81367E8_hook:
 
 @@main:                               // r2, r5 := move_id, moves
     push {r0, r3-r7}
@@ -80,10 +65,10 @@ display_type_hook:
 
     ldrb r1, [r0, #2]                // r1 := type
     ldrb r2, [r0, #0]                // r2 := effect_id
-    cmp r2, #hp_effect_index
+    cmp r2, #EFFECT_HIDDEN_POWER
     bne @@return
 
-    ldr r0, =pkmn_status_data
+    ldr r0, =sMonSummaryScreen
     ldr r0, [r0]
     ldr r1, =0x3290
     add r0, r1                        // [r0] := pokemon
@@ -93,7 +78,7 @@ display_type_hook:
 @@return:
     mov lr, r7
     pop {r0, r3-r7}
-    ldr r2, =display_type |1
+    ldr r2, =sub_81367E8_hook_return |1
     bx r2
 
 // -----------------------------------------------------------------------------
@@ -106,7 +91,7 @@ hp_type_decode:
     mov r6, r0                                    // [r6] := pokemon
     mov r4, #0                                    // r4 := type calculation
     mov r7, #0                                    // r7 := iv index
-    ldr r5, =pokemon_getattr |1
+    ldr r5, =GetMonData |1
 
 @@loop:
     mov r0, r6                                    // [r0] := pokemon
@@ -146,19 +131,19 @@ hp_type_decode:
 // -----------------------------------------------------------------------------
 
 .org 0x08030984
-    ldr r0, =write_type_hook |1
+    ldr r0, =MoveSelectionDisplayMoveType_hook |1
     bx r0
     .pool
 
 .org 0x081368CC
-    ldr r1, =display_type_hook |1
+    ldr r1, =sub_81367E8_hook |1
     bx r1
     .pool
 
 // -----------------------------------------------------------------------------
 
 .if change_hp_static_type
-    .org readu32(input_rom, moves_ptr & 0x1FFFFFF) + 0xED * 12 +2
+    .org readu32(input_rom, gBattleMovesPtr & 0x1FFFFFF) + 0xED * 12 +2
     .byte 0x9
 .endif
 
