@@ -7,7 +7,7 @@ This routine makes the game calculate and display the actual type of Hidden Powe
 
 #### How do I insert this?
 
-First, open `config.asm` in a text editor to customize it.
+First, open `config.s` in a text editor to customize it.
 
 Tweak the definition of `free_space` to be where you want the code inserted.
 
